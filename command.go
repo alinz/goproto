@@ -108,6 +108,21 @@ func getAllProtoPaths(target string) ([]string, error) {
 	return fileList, nil
 }
 
+func run(command string, args ...string) {
+	//var out bytes.Buffer
+	var stderr bytes.Buffer
+
+	cmd := exec.Command(command, args...)
+	//cmd.Stdout = &out
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println(stderr.String() + "\n" + fmt.Sprint(err))
+		return
+	}
+}
+
 func ParseCompile(prefix string) {
 	sources, err := getAllProtoPaths(".")
 	if err != nil {
@@ -132,15 +147,13 @@ func ParseCompile(prefix string) {
 			panic(lookErr)
 		}
 
-		cmd := exec.Command(binary, strings.Split(protoc, " ")...)
-		var out bytes.Buffer
-		var stderr bytes.Buffer
-		cmd.Stdout = &out
-		cmd.Stderr = &stderr
-		err = cmd.Run()
-		if err != nil {
-			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
-			return
+		run(binary, strings.Split(protoc, " ")...)
+
+		// optional
+		binary, lookErr = exec.LookPath("protoc-go-inject-tag")
+		if lookErr == nil {
+			compiledSource := strings.Replace(source, ".proto", ".pb.go", 1)
+			run(binary, fmt.Sprintf("-input=%s", compiledSource))
 		}
 	}
 }
