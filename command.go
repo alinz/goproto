@@ -95,7 +95,7 @@ func getAllProtoPaths(target string) ([]string, error) {
 	target = target + "/"
 
 	err := filepath.Walk(target, func(path string, f os.FileInfo, err error) error {
-		if !f.IsDir() && strings.HasSuffix(f.Name(), ".proto") {
+		if !f.IsDir() && strings.HasSuffix(f.Name(), ".proto") && !strings.HasPrefix(path, "vendor/") {
 			fileList = append(fileList, strings.Replace(path, target, "", -1))
 		}
 		return nil
